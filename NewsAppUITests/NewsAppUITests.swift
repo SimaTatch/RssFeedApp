@@ -1,9 +1,3 @@
-//
-//  NewsAppUITests.swift
-//  NewsAppUITests
-//
-//  Created by Серафима  Татченкова  on 20.06.2022.
-//
 
 import XCTest
 

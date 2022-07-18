@@ -1,36 +1,56 @@
-//
-//  NewsAppTests.swift
-//  NewsAppTests
-//
-//  Created by Серафима  Татченкова  on 20.06.2022.
-//
 
 import XCTest
+import CoreData
 @testable import NewsApp
 
 class NewsAppTests: XCTestCase {
+    
+    var coreManager: CoreDataManager!
+    var rssItemsArray = [RSSItem]()
+    let urlStringNYT = "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    override func setUp() {
+        super.setUp()
+        coreManager = CoreDataManager()
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func test_create_newsItem() {
+        let rssItem1 = RSSItem(sourceName: "NYT", title: "SomeTitle", description: "SomeDescription", pubDate: Date(), image: "SomeUrl", link: "SomeLink", isSaved: true)
+        let rssItem2 = RSSItem(sourceName: "NYT2", title: "SomeTitle2", description: "SomeDescription2", pubDate: Date(), image: "SomeUrl2", link: "SomeLink2", isSaved: false)
+        rssItemsArray.append(rssItem1)
+        rssItemsArray.append(rssItem2)
+        coreManager.saveDataOf(newsRSSArray: rssItemsArray)
+        let newsItem = coreManager.getCertainItemFromCoreData(with: "SomeTitle2")
+
+        XCTAssertEqual("SomeTitle2", newsItem!.title)
+
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func test_update_newsItem() {
+        let rssItem1 = RSSItem(sourceName: "NYT", title: "SomeTitle", description: "SomeDescription", pubDate: Date(), image: "SomeUrl", link: "SomeLink", isSaved: true)
+        rssItemsArray.append(rssItem1)
+        coreManager.saveDataOf(newsRSSArray: rssItemsArray)
+        coreManager.updateItemNEWS(itemToUpdate: "SomeTitle", isSavedUpdated: false)
+        let newsItem = coreManager.getCertainItemFromCoreData(with: "SomeTitle")
+
+        XCTAssertEqual(false, newsItem!.isSaved)
     }
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func test_delete_newsItem() {
+        let rssItem1 = RSSItem(sourceName: "NYT", title: "SomeTitle", description: "SomeDescription", pubDate: Date(), image: "SomeUrl", link: "SomeLink", isSaved: true)
+        rssItemsArray.append(rssItem1)
+        coreManager.saveDataOf(newsRSSArray: rssItemsArray)
+        coreManager.deleteObjectsFromCoreData(context: coreManager.context)
+        let newsItem = coreManager.getCertainItemFromCoreData(with: "SomeTitle")
+
+        XCTAssertNotEqual ("SomeTitle", newsItem?.title)
+    }
+
+    func test_xml_parser() {
+        let feedParser = FeedParser()
+        feedParser.parseFeed(url: urlStringNYT) { (rssItems) in
+            XCTAssertNotNil(rssItems)
         }
     }
-
+    
 }
